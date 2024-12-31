@@ -19,7 +19,7 @@ RUN wget https://raw.githubusercontent.com/technomancy/leiningen/stable/bin/lein
     lein self-install
 
 # Install lein-git-deps plugin
-RUN lein plugin install lein-git-deps 0.0.1
+RUN lein deps
 
 # without --dev flag up.sh copies jepsen to these subfolders
 # with --dev flag they are empty until mounted
