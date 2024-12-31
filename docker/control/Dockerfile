@@ -15,7 +15,8 @@ RUN apt-get -qy update && \
 RUN wget https://raw.githubusercontent.com/technomancy/leiningen/stable/bin/lein && \
     mv lein /usr/bin && \
     chmod +x /usr/bin/lein && \
-    lein self-install
+    lein self-install && \
+    lein plugin install lein-git-deps 0.0.1
 
 # without --dev flag up.sh copies jepsen to these subfolders
 # with --dev flag they are empty until mounted
