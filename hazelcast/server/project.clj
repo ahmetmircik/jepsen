@@ -12,8 +12,11 @@
   :profiles {:uberjar {:uberjar-name "hazelcast-server.jar"}}
   :main jepsen.hazelcast-server
   :aot [jepsen.hazelcast-server]
-  :repositories {"hazelcast release" "https://repository.hazelcast.com/release/"}
-  :plugins [[lein-git-deps "0.0.1"]]
+  :repositories {
+    "hazelcast release" "https://repository.hazelcast.com/release/"
+    "clojars" "https://repo.clojars.org/"
+  }
+  :plugins [[lein-git-deps "0.0.2"]]
   :git-dependencies [["https://github.com/ahmetmircik/hazelcast-mono.git"
                       "6.0/cp/chunked"]]
   :checkout-deps-shares ^:replace [:source-paths :java-source-paths])
