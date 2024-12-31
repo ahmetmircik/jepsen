@@ -8,11 +8,13 @@
   :dependencies [[org.clojure/clojure "1.11.1"]
                  [org.clojure/tools.cli "1.0.219"]
                  [org.clojure/tools.logging "1.2.4"]
-                 [spootnik/unilog "0.7.31"]
-                 [com.hazelcast/hazelcast-enterprise "6.0.0-SNAPSHOT"
-                  :git/url "https://github.com/ahmetmircik/hazelcast-mono.git"
-                  :git/sha "6.0/cp/chunked"]]
+                 [spootnik/unilog "0.7.31"]]
   :profiles {:uberjar {:uberjar-name "hazelcast-server.jar"}}
   :main jepsen.hazelcast-server
   :aot [jepsen.hazelcast-server]
-  :repositories {"hazelcast release" "https://repository.hazelcast.com/release/"})
+  :repositories {"hazelcast release" "https://repository.hazelcast.com/release/"}
+  :plugins [[lein-git-deps "0.0.1"]]
+  :git-dependencies [["https://github.com/ahmetmircik/hazelcast-mono.git"
+                      "6.0/cp/chunked"]]
+  :checkout-deps-shares ^:replace [:source-paths :java-source-paths])
+
