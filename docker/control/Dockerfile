@@ -18,14 +18,14 @@ RUN wget https://raw.githubusercontent.com/technomancy/leiningen/stable/bin/lein
     chmod +x /usr/bin/lein && \
     lein self-install
 
-# Install lein-git-deps plugin
-RUN lein deps
 
 # without --dev flag up.sh copies jepsen to these subfolders
 # with --dev flag they are empty until mounted
 COPY jepsen/jepsen /jepsen/jepsen/
 RUN if [ -f /jepsen/jepsen/project.clj ]; then cd /jepsen/jepsen && lein install; fi
 COPY jepsen /jepsen/
+
+RUN lein deps
 
 ADD ./bashrc /root/.bashrc
 ADD ./init.sh /init.sh
