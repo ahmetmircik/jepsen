@@ -10,13 +10,16 @@ ENV LEIN_ROOT true
 #
 RUN apt-get -qy update && \
     apt-get -qy install \
-        curl dos2unix emacs git gnuplot graphviz htop iputils-ping libjna-java openjdk-17-jdk-headless pssh screen vim wget
+        curl dos2unix emacs git gnuplot graphviz htop iputils-ping libjna-java openjdk-17-jdk-headless pssh screen vim wget \
+    && apt-get clean
 
 RUN wget https://raw.githubusercontent.com/technomancy/leiningen/stable/bin/lein && \
     mv lein /usr/bin && \
     chmod +x /usr/bin/lein && \
-    lein self-install && \
-    lein plugin install lein-git-deps 0.0.1
+    lein self-install
+
+# Install lein-git-deps plugin
+RUN lein plugin install lein-git-deps 0.0.1
 
 # without --dev flag up.sh copies jepsen to these subfolders
 # with --dev flag they are empty until mounted
