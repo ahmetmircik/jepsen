@@ -22,7 +22,11 @@ RUN wget https://raw.githubusercontent.com/technomancy/leiningen/stable/bin/lein
 # without --dev flag up.sh copies jepsen to these subfolders
 # with --dev flag they are empty until mounted
 COPY jepsen/jepsen /jepsen/jepsen/
-RUN if [ -f /jepsen/jepsen/project.clj ]; then cd /jepsen/jepsen && lein install; fi
+RUN if [ -f /jepsen/jepsen/project.clj ]; then \
+      cd /jepsen/jepsen && \
+      lein install && \
+      lein deps; \
+    fi
 COPY jepsen /jepsen/
 
 RUN lein deps
