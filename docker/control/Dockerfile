@@ -29,8 +29,6 @@ RUN if [ -f /jepsen/jepsen/project.clj ]; then \
     fi
 COPY jepsen /jepsen/
 
-RUN lein deps
-
 ADD ./bashrc /root/.bashrc
 ADD ./init.sh /init.sh
 RUN dos2unix /init.sh /root/.bashrc \
