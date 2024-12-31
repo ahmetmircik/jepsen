@@ -9,9 +9,10 @@
                  [org.clojure/tools.cli "1.0.219"]
                  [org.clojure/tools.logging "1.2.4"]
                  [spootnik/unilog "0.7.31"]
-                 [com.hazelcast/hazelcast-enterprise "6.0.0-SNAPSHOT"]]
+                 [com.hazelcast/hazelcast-enterprise "6.0.0-SNAPSHOT"
+                  :git/url "https://github.com/ahmetmircik/hazelcast-mono.git"
+                  :git/sha "6.0/cp/chunked"]]
   :profiles {:uberjar {:uberjar-name "hazelcast-server.jar"}}
   :main jepsen.hazelcast-server
   :aot [jepsen.hazelcast-server]
-  :repositories {"hazelcast snapshot" "https://repository.hazelcast.com/snapshot/"
-                 "hazelcast release" "https://repository.hazelcast.com/release/"})
+  :repositories {"hazelcast release" "https://repository.hazelcast.com/release/"})
