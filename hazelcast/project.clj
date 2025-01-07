@@ -11,6 +11,8 @@
   }
   :aot [jepsen.hazelcast]
   :main jepsen.hazelcast
-  :plugins [[lein-git-deps "0.0.2"]]
+  :plugins [[lein-git-deps "0.0.2"]
+            [lein-shell "0.5.0"]] ;; Add lein-shell for running shell commands
   :git-dependencies [[~(str "https://" (System/getenv "GITHUB_TOKEN") "@github.com/ahmetmircik/hazelcast-mono.git") "6.0/cp/chunked"]]
-  :checkout-deps-shares ^:replace [:source-paths :java-source-paths])
+  :checkout-deps-shares ^:replace [:source-paths :java-source-paths]
+  :aliases {"build-deps" ["shell" "bash" "-c" "cd .lein-git-deps/hazelcast-mono && mvn clean install"]})
