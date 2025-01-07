@@ -17,7 +17,6 @@
     "clojars" "https://repo.clojars.org/"
   }
   :plugins [[lein-git-deps "0.0.2"]]
-  :git-dependencies [(str "https://" (System/getenv "GITHUB_TOKEN") "@github.com/ahmetmircik/hazelcast-mono.git"
-                            "6.0/cp/chunked")]
+  :git-dependencies [[~(str "https://" (System/getenv "GITHUB_TOKEN") "@github.com/ahmetmircik/hazelcast-mono.git") "6.0/cp/chunked"]]
   :checkout-deps-shares ^:replace [:source-paths :java-source-paths])
 
