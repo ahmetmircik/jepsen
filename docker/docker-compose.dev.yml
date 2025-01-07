@@ -1,4 +1,10 @@
 services:
   control:
+    build:
+      context: .
+      args:
+        GITHUB_TOKEN: ${GITHUB_TOKEN}
     volumes:
       - ${JEPSEN_ROOT}:/jepsen # Mounts $JEPSEN_ROOT on host to /jepsen control container
+    environment:
+      - GITHUB_TOKEN=${GITHUB_TOKEN} # Passes the token to the running container
