@@ -2,7 +2,7 @@ version: '3.7'
 services:
   jepsen-control:
     build:
-      context: ../hazelcast/resources
+#      context: ../hazelcast/resources
       args:
         GITHUB_TOKEN: ${GITHUB_TOKEN}
     environment:
