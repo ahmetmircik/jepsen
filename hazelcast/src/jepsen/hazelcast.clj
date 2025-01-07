@@ -744,6 +744,15 @@
                                                gen/each-thread
                                                (gen/stagger 0.25))
                                :checker   (checker/linearizable {:model (model/cas-register 0)})}
+   :cas-cp-map                {:client    (cas-cp-map-client nil nil cp-direct-to-leader-routing)
+                               :generator (->> (fn [] (gen/mix [{:type :invoke, :f (name :read)} ; Ensure :read is a string
+                                                 {:type :invoke, :f (name :write), :value (rand-int 5)}
+                                                 {:type :invoke, :f (name :cas), :value [(rand-int 5) (rand-int 5)]}]))
+                                gen/each-thread
+                                (gen/stagger 0.25))
+                              :checker   (checker/linearizable {:model (model/cas-register 0)})}
+
+
    :queue                     (assoc (queue-client-and-gens)
                                 :checker (checker/total-queue))}))
 
