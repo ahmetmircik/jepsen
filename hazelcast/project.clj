@@ -6,4 +6,4 @@
   :dependencies [[org.clojure/clojure "1.12.0"]
                  [jepsen "0.3.7"]
                  [com.hazelcast/hazelcast-enterprise "6.0.0-SNAPSHOT"]]
-  :main jepsen.hazelcast
+  :main jepsen.hazelcast)
