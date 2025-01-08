@@ -4,15 +4,6 @@
   :license {:name "Eclipse Public License"
             :url "http://www.eclipse.org/legal/epl-v10.html"}
   :dependencies [[org.clojure/clojure "1.12.0"]
-                 [jepsen "0.3.7"]]
-  :repositories {
-    "hazelcast release" "https://repository.hazelcast.com/release/"
-    "clojars" "https://repo.clojars.org/"
-  }
-  :aot [jepsen.hazelcast]
+                 [jepsen "0.3.7"]
+                 [com.hazelcast/hazelcast-enterprise "6.0.0-SNAPSHOT"]]
   :main jepsen.hazelcast
-  :plugins [[lein-git-deps "0.0.2"]
-            [lein-shell "0.5.0"]] ;; Add lein-shell for running shell commands
-  :git-dependencies [[~(str "https://" (System/getenv "GITHUB_TOKEN") "@github.com/ahmetmircik/hazelcast-mono.git") "6.0/cp/chunked"]]
-  :checkout-deps-shares ^:replace [:source-paths :java-source-paths]
-  :aliases {"build-deps" ["shell" "bash" "-c" "cd .lein-git-deps/hazelcast-mono && mvn clean install"]})
