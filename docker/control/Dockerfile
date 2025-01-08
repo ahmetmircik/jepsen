@@ -41,7 +41,7 @@ RUN git clone --branch 6.0/cp/chunked https://$GITHUB_TOKEN@github.com/ahmetmirc
 
 # Change to the project directory and build with Maven Wrapper
 WORKDIR /app/hazelcast-mono
-RUN ./mvnw clean install -Dnot-quick -Pquick
+RUN ./mvnw clean install -Dnot-quick -Pquick -q
 
 # Additional initialization and setup
 ADD ./bashrc /root/.bashrc
