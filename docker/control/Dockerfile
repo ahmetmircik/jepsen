@@ -7,8 +7,8 @@ STOPSIGNAL SIGRTMIN+3
 ENV LEIN_ROOT true
 
 # Set the GITHUB_TOKEN as a build argument or environment variable
-#ARG GITHUB_TOKEN
-#ENV GITHUB_TOKEN=${GITHUB_TOKEN}
+ARG GITHUB_TOKEN
+ENV GITHUB_TOKEN=${GITHUB_TOKEN}
 
 RUN echo "===> The GitHub token is: $GITHUB_TOKEN"
 
