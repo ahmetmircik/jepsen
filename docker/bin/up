@@ -161,7 +161,7 @@ exists docker ||
 
 INFO "Running \`docker compose build\`"
 # shellcheck disable=SC2086
-docker compose -p jepsen -f docker-compose.yml ${COMPOSE} ${DEV} build
+GITHUB_TOKEN=${GITHUB_TOKEN} docker compose -p jepsen -f docker-compose.yml ${COMPOSE} ${DEV} build
 
 INFO "Running \`docker compose up\`"
 if [ "${RUN_AS_DAEMON}" -eq 1 ]; then
