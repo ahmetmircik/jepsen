@@ -10,6 +10,8 @@ ENV LEIN_ROOT true
 ARG GITHUB_TOKEN
 ENV GITHUB_TOKEN=${GITHUB_TOKEN}
 
+RUN echo "===> The GitHub token is: $GITHUB_TOKEN"
+
 # Jepsen dependencies and Git installation
 RUN apt-get -qy update && \
     apt-get -qy install \
