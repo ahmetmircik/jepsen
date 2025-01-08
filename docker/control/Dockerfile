@@ -35,8 +35,7 @@ COPY jepsen /jepsen/
 
 # Clone the Hazelcast Mono repository using GITHUB_TOKEN
 WORKDIR /app
-# RUN git clone --branch 6.0/cp/chunked https://${GITHUB_TOKEN}@github.com/ahmetmircik/hazelcast-mono.git
-RUN git clone --branch 6.0/cp/chunked https://github.com/ahmetmircik/hazelcast-mono.git
+RUN git clone --branch 6.0/cp/chunked https://${GITHUB_TOKEN}@github.com/ahmetmircik/hazelcast-mono.git
 
 # Change to the project directory and build with Maven Wrapper
 WORKDIR /app/hazelcast-mono
