@@ -27,6 +27,7 @@ exists() {
 }
 
 JEPSEN_ROOT=${JEPSEN_ROOT:-""}
+GITHUB_TOKEN=${GITHUB_TOKEN}
 
 
 # Change directory to the parent directory of this script. Taken from:
@@ -168,7 +169,7 @@ GITHUB_TOKEN=${GITHUB_TOKEN} docker compose -p jepsen -f docker-compose.yml ${CO
 INFO "Running \`docker compose up\`"
 if [ "${RUN_AS_DAEMON}" -eq 1 ]; then
     # shellcheck disable=SC2086
-    docker compose -p jepsen -f docker-compose.yml ${COMPOSE} ${DEV} up -d
+    GITHUB_TOKEN=${GITHUB_TOKEN} docker compose -p jepsen -f docker-compose.yml ${COMPOSE} ${DEV} up -d
     INFO "All containers started! Run \`docker ps\` to view, and \`bin/console\` to get started."
 else
     INFO "Please run \`bin/console\` in another terminal to proceed"
