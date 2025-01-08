@@ -25,6 +25,9 @@ exists() {
 }
 
 JEPSEN_ROOT=${JEPSEN_ROOT:-""}
+GITHUB_TOKEN=${GITHUB_TOKEN:-""}
+export GITHUB_TOKEN
+
 
 # Change directory to the parent directory of this script. Taken from:
 # https://stackoverflow.com/a/246128/3858681
