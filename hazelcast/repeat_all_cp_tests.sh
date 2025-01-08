@@ -19,8 +19,7 @@ repeat=$1
 test_duration=$2
 license=$3
 cp_direct_to_leader_routing=$4
-GITHUB_TOKEN="$5"
-export GITHUB_TOKEN
+
 
 if [ $# -gt 4 ]; then
   # Just run specified tests...
