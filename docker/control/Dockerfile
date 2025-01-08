@@ -1,31 +1,49 @@
 # Use a Debian-based image with necessary tools pre-installed
 FROM jgoerzen/debian-base-standard:bookworm
 
-ENV container=docker
+# Set environment variables
+ENV DEBIAN_FRONTEND=noninteractive \
+    container=docker \
+    LEIN_ROOT=true
+
 STOPSIGNAL SIGRTMIN+3
 
-ENV LEIN_ROOT true
-
-# Set the GITHUB_TOKEN as a build argument or environment variable
+# Set the GITHUB_TOKEN as a build argument
 ARG GITHUB_TOKEN
 ENV GITHUB_TOKEN=${GITHUB_TOKEN}
 
-RUN echo "===> docker file The GitHub token is: $GITHUB_TOKEN"
-RUN echo "===> docker file The GitHub token is: ${GITHUB_TOKEN}"
+# Print GitHub token for debugging (consider removing in production)
+RUN echo "===> docker file The GitHub token is: $GITHUB_TOKEN" && \
+    echo "===> docker file The GitHub token is: ${GITHUB_TOKEN}"
 
-# Jepsen dependencies and Git installation
-RUN apt-get -qy update && \
-    apt-get -qy install \
-        curl dos2unix emacs git gnuplot graphviz htop iputils-ping libjna-java openjdk-17-jdk-headless pssh screen vim wget maven \
-    && apt-get clean
+# Install Jepsen dependencies and Git
+RUN apt-get update && apt-get upgrade -y && \
+    apt-get install -y --no-install-recommends \
+        curl \
+        dos2unix \
+        emacs \
+        git \
+        gnuplot \
+        graphviz \
+        htop \
+        iputils-ping \
+        libjna-java \
+        openjdk-17-jdk-headless \
+        pssh \
+        screen \
+        vim \
+        wget \
+        maven \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
 
+# Install Leiningen
 RUN wget https://raw.githubusercontent.com/technomancy/leiningen/stable/bin/lein && \
     mv lein /usr/bin && \
     chmod +x /usr/bin/lein && \
     lein self-install
 
-# Without --dev flag up.sh copies Jepsen to these subfolders
-# With --dev flag they are empty until mounted
+# Copy and setup Jepsen
 COPY jepsen/jepsen /jepsen/jepsen/
 RUN if [ -f /jepsen/jepsen/project.clj ]; then \
       cd /jepsen/jepsen && \
@@ -34,19 +52,16 @@ RUN if [ -f /jepsen/jepsen/project.clj ]; then \
     fi
 COPY jepsen /jepsen/
 
-# Clone the Hazelcast Mono repository using GITHUB_TOKEN
+# Clone and build Hazelcast Mono repository
 WORKDIR /app
-RUN git clone --branch 6.0/cp/chunked https://$GITHUB_TOKEN@github.com/ahmetmircik/hazelcast-mono.git
+RUN git clone --branch 6.0/cp/chunked https://${GITHUB_TOKEN}@github.com/ahmetmircik/hazelcast-mono.git && \
+    cd hazelcast-mono && \
+    ./mvnw clean install -DskipTests -Dcheckstyle.skip -Pquick -q -pl '!hazelcast-enterprise-extensions/hazelcast-enterprise-cdc-db2-tests'
 
+# Setup initialization scripts
+COPY ./bashrc /root/.bashrc
+COPY ./init.sh /init.sh
+RUN dos2unix /init.sh /root/.bashrc && \
+    chmod +x /init.sh
 
-# Change to the project directory and build with Maven Wrapper
-WORKDIR /app/hazelcast-mono
-RUN ./mvnw clean install -DskipTests -Dcheckstyle.skip -Pquick -q -pl '!hazelcast-enterprise-extensions/hazelcast-enterprise-cdc-db2-tests'
-
-# Additional initialization and setup
-ADD ./bashrc /root/.bashrc
-ADD ./init.sh /init.sh
-RUN dos2unix /init.sh /root/.bashrc \
-    && chmod +x /init.sh
-
-CMD /init.sh
+CMD ["/init.sh"]
