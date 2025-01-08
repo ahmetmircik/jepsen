@@ -12,30 +12,46 @@ STOPSIGNAL SIGRTMIN+3
 ARG GITHUB_TOKEN
 ENV GITHUB_TOKEN=${GITHUB_TOKEN}
 
-# Print GitHub token for debugging (consider removing in production)
-RUN echo "===> docker file The GitHub token is: $GITHUB_TOKEN" && \
-    echo "===> docker file The GitHub token is: ${GITHUB_TOKEN}"
-
-# Install Jepsen dependencies and Git
+# Install packages in smaller groups to manage disk space better
 RUN apt-get update && apt-get upgrade -y && \
+    # First group of essential tools
     apt-get install -y --no-install-recommends \
         curl \
-        dos2unix \
-        emacs \
         git \
-        gnuplot \
-        graphviz \
+        wget \
+    && apt-get clean && rm -rf /var/lib/apt/lists/* && \
+    # Clear package cache after each group
+    rm -rf /var/cache/apt/archives/*
+
+# Install development tools
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+        dos2unix \
         htop \
         iputils-ping \
-        libjna-java \
-        openjdk-17-jdk-headless \
         pssh \
         screen \
-        vim \
-        wget \
         maven \
-    && apt-get clean \
-    && rm -rf /var/lib/apt/lists/*
+    && apt-get clean && rm -rf /var/lib/apt/lists/* && \
+    rm -rf /var/cache/apt/archives/*
+
+# Install Java and related packages
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+        libjna-java \
+        openjdk-17-jdk-headless \
+    && apt-get clean && rm -rf /var/lib/apt/lists/* && \
+    rm -rf /var/cache/apt/archives/*
+
+# Install larger packages separately
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+        vim-tiny \
+        emacs-nox \
+        gnuplot \
+        graphviz \
+    && apt-get clean && rm -rf /var/lib/apt/lists/* && \
+    rm -rf /var/cache/apt/archives/*
 
 # Install Leiningen
 RUN wget https://raw.githubusercontent.com/technomancy/leiningen/stable/bin/lein && \
