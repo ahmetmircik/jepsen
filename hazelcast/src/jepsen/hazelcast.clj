@@ -266,6 +266,14 @@
                true)
   ))
 
+(defn random-string
+  "Generates a random alphanumeric string of a given length."
+  [length]
+  (let [chars (map char (concat (range 48 58)   ; 0-9
+                                (range 65 91)   ; A-Z
+                                (range 97 123)))] ; a-z
+    (apply str (repeatedly length #(rand-nth chars)))))
+
 (defn cas-cp-map-client
   "A CAS register using a CPMap"
   [conn cp-map cp-direct-to-leader-routing]
@@ -275,15 +283,19 @@
         (cas-cp-map-client conn (create-cp-map conn "jepsen.cas-cp-map") cp-direct-to-leader-routing)))
 
     (setup! [this test]
-                 "Called to set up database state for testing.")
+            "Called to set up database state for testing."
+      (dotimes [i 10000]
+        (let [k (str "key-" i)
+              v (random-string 1000)]
+          (.put cp-map k v))))
 
     (invoke! [this test op]
       (case (:f op)
-        :read (assoc op :type :ok, :value (.get cp-map "key"))
-        :write (do (.set cp-map "key" (:value op))
+        :read (assoc op :type :ok, :value (.get cp-map (:key op)))
+        :write (do (.set cp-map (:key op) (:value op))
                    (assoc op :type :ok))
         :cas (let [[currentV newV] (:value op)]
-               (if (.compareAndSet cp-map "key" currentV newV)
+               (if (.compareAndSet cp-map (:key op) currentV newV)
                  (assoc op :type :ok)
                  (assoc op :type :fail :error :cas-failed)))))
 
@@ -667,7 +679,6 @@
   "A model that assign permits to multiple nodes via :acquire and :release messages"
   (AcquiredPermitsModel. client-uids-to-client-names-map {}))
 
-
 (defn workloads
   "The workloads we can run. Each workload is a map like
 
@@ -683,70 +694,74 @@
   [client-uids-to-client-names-map opts]
   (let [cp-direct-to-leader-routing (:cp-direct-to-leader-routing opts)]
   {:crdt-map                  (map-workload {:crdt? true})
-   :map                       (map-workload {:crdt? false})
-   :non-reentrant-lock        {:client    (fenced-lock-client "jepsen.cpLock1" cp-direct-to-leader-routing)
-                               :generator (->> (fn [] [{:type :invoke, :f :acquire :value (.toString (UUID/randomUUID))}
-                                                       {:type :invoke, :f :release :value (.toString (UUID/randomUUID))}])
-                                               gen/each-thread
-                                               (gen/stagger 0.25))
-                               :checker   (checker/linearizable {:model (create-owner-aware-mutex client-uids-to-client-names-map)})}
-   :reentrant-lock            {:client    (fenced-lock-client "jepsen.cpLock2" cp-direct-to-leader-routing)
-                               :generator (->> (fn [] [{:type :invoke, :f :acquire :value (.toString (UUID/randomUUID))}
-                                                       {:type :invoke, :f :acquire :value (.toString (UUID/randomUUID))}
-                                                       {:type :invoke, :f :release :value (.toString (UUID/randomUUID))}
-                                                       {:type :invoke, :f :release :value (.toString (UUID/randomUUID))}])
-                                               gen/each-thread
-                                               (gen/stagger 0.25))
-                               :checker   (checker/linearizable {:model (create-reentrant-mutex client-uids-to-client-names-map)})}
-   :non-reentrant-fenced-lock {:client    (fenced-lock-client "jepsen.cpLock1" cp-direct-to-leader-routing)
-                               :generator (->> (fn [] [{:type :invoke, :f :acquire :value (.toString (UUID/randomUUID))}
-                                                       {:type :invoke, :f :release :value (.toString (UUID/randomUUID))}])
-                                               gen/each-thread
-                                               (gen/stagger 0.5))
-                               :checker   (checker/linearizable {:model (create-fenced-mutex client-uids-to-client-names-map)})}
-   :reentrant-fenced-lock     {:client    (fenced-lock-client "jepsen.cpLock2" cp-direct-to-leader-routing)
-                               :generator (->> (fn [] [{:type :invoke, :f :acquire :value (.toString (UUID/randomUUID))}
-                                                       {:type :invoke, :f :acquire :value (.toString (UUID/randomUUID))}
-                                                       {:type :invoke, :f :release :value (.toString (UUID/randomUUID))}
-                                                       {:type :invoke, :f :release :value (.toString (UUID/randomUUID))}])
-                                               gen/each-thread
-                                               (gen/stagger 0.5))
-                               :checker   (checker/linearizable {:model (create-reentrant-fenced-mutex client-uids-to-client-names-map)})}
-   :semaphore                 {:client    (semaphore-client)
-                               :generator (->> (fn [] [{:type :invoke, :f :acquire :value (.toString (UUID/randomUUID))}
-                                                       {:type :invoke, :f :release :value (.toString (UUID/randomUUID))}])
-                                               gen/each-thread
-                                               (gen/stagger 0.25))
-                               :checker   (checker/linearizable {:model (create-acquired-permits-model client-uids-to-client-names-map)})}
-   :id-gen-long               {:client    (atomic-long-id-client nil nil cp-direct-to-leader-routing)
-                               :generator (->> [{:type :invoke, :f :generate}]
-                                               cycle
-                                               (gen/stagger 0.25))
-                               :checker   (checker/unique-ids)}
-   :cas-long                  {:client    (cas-long-client nil nil cp-direct-to-leader-routing)
-                               :generator (->> (fn [] (gen/mix [{:type :invoke, :f :read}
-                                                                {:type :invoke, :f :write, :value (rand-int 5)}
-                                                                {:type :invoke, :f :cas, :value [(rand-int 5) (rand-int 5)]}]))
-                                               gen/each-thread
-                                               (gen/stagger 0.25))
-                               :checker   (checker/linearizable {:model (model/cas-register 0)})}
-   :cas-reference             {:client    (cas-reference-client nil nil cp-direct-to-leader-routing)
-                               :generator (->> (fn [] (gen/mix [{:type :invoke, :f :read}
-                                                                {:type :invoke, :f :write, :value (rand-int 5)}
-                                                                {:type :invoke, :f :cas, :value [(rand-int 5) (rand-int 5)]}]))
-                                               gen/each-thread
-                                               (gen/stagger 0.25))
-                               :checker   (checker/linearizable {:model (model/cas-register 0)})}
-   :cas-cp-map                {:client    (cas-cp-map-client nil nil cp-direct-to-leader-routing)
-                               :generator (->> (fn [] (gen/mix [{:type :invoke, :f :read}
-                                                                {:type :invoke, :f :write, :value (rand-int 5)}
-                                                                {:type :invoke, :f :cas, :value [(rand-int 5) (rand-int 5)]}]))
-                                               gen/each-thread
-                                               (gen/stagger 0.25))
-                               :checker   (checker/linearizable {:model (model/cas-register 0)})}
-   :queue                     (assoc (queue-client-and-gens)
-                                :checker (checker/total-queue))}))
-
+     :map                       (map-workload {:crdt? false})
+     :non-reentrant-lock        {:client    (fenced-lock-client "jepsen.cpLock1" cp-direct-to-leader-routing)
+                                 :generator (->> (fn [] [{:type :invoke, :f :acquire :value (.toString (UUID/randomUUID))}
+                                                         {:type :invoke, :f :release :value (.toString (UUID/randomUUID))}])
+                                                 gen/each-thread
+                                                 (gen/stagger 0.25))
+                                 :checker   (checker/linearizable {:model (create-owner-aware-mutex client-uids-to-client-names-map)})}
+     :reentrant-lock            {:client    (fenced-lock-client "jepsen.cpLock2" cp-direct-to-leader-routing)
+                                 :generator (->> (fn [] [{:type :invoke, :f :acquire :value (.toString (UUID/randomUUID))}
+                                                         {:type :invoke, :f :acquire :value (.toString (UUID/randomUUID))}
+                                                         {:type :invoke, :f :release :value (.toString (UUID/randomUUID))}
+                                                         {:type :invoke, :f :release :value (.toString (UUID/randomUUID))}])
+                                                 gen/each-thread
+                                                 (gen/stagger 0.25))
+                                 :checker   (checker/linearizable {:model (create-reentrant-mutex client-uids-to-client-names-map)})}
+     :non-reentrant-fenced-lock {:client    (fenced-lock-client "jepsen.cpLock1" cp-direct-to-leader-routing)
+                                 :generator (->> (fn [] [{:type :invoke, :f :acquire :value (.toString (UUID/randomUUID))}
+                                                         {:type :invoke, :f :release :value (.toString (UUID/randomUUID))}])
+                                                 gen/each-thread
+                                                 (gen/stagger 0.5))
+                                 :checker   (checker/linearizable {:model (create-fenced-mutex client-uids-to-client-names-map)})}
+     :reentrant-fenced-lock     {:client    (fenced-lock-client "jepsen.cpLock2" cp-direct-to-leader-routing)
+                                 :generator (->> (fn [] [{:type :invoke, :f :acquire :value (.toString (UUID/randomUUID))}
+                                                         {:type :invoke, :f :acquire :value (.toString (UUID/randomUUID))}
+                                                         {:type :invoke, :f :release :value (.toString (UUID/randomUUID))}
+                                                         {:type :invoke, :f :release :value (.toString (UUID/randomUUID))}])
+                                                 gen/each-thread
+                                                 (gen/stagger 0.5))
+                                 :checker   (checker/linearizable {:model (create-reentrant-fenced-mutex client-uids-to-client-names-map)})}
+     :semaphore                 {:client    (semaphore-client)
+                                 :generator (->> (fn [] [{:type :invoke, :f :acquire :value (.toString (UUID/randomUUID))}
+                                                         {:type :invoke, :f :release :value (.toString (UUID/randomUUID))}])
+                                                 gen/each-thread
+                                                 (gen/stagger 0.25))
+                                 :checker   (checker/linearizable {:model (create-acquired-permits-model client-uids-to-client-names-map)})}
+     :id-gen-long               {:client    (atomic-long-id-client nil nil cp-direct-to-leader-routing)
+                                 :generator (->> [{:type :invoke, :f :generate}]
+                                                 cycle
+                                                 (gen/stagger 0.25))
+                                 :checker   (checker/unique-ids)}
+     :cas-long                  {:client    (cas-long-client nil nil cp-direct-to-leader-routing)
+                                 :generator (->> (fn [] (gen/mix [{:type :invoke, :f :read}
+                                                                  {:type :invoke, :f :write, :value (rand-int 5)}
+                                                                  {:type :invoke, :f :cas, :value [(rand-int 5) (rand-int 5)]}]))
+                                                 gen/each-thread
+                                                 (gen/stagger 0.25))
+                                 :checker   (checker/linearizable {:model (model/cas-register 0)})}
+     :cas-reference             {:client    (cas-reference-client nil nil cp-direct-to-leader-routing)
+                                 :generator (->> (fn [] (gen/mix [{:type :invoke, :f :read}
+                                                                  {:type :invoke, :f :write, :value (rand-int 5)}
+                                                                  {:type :invoke, :f :cas, :value [(rand-int 5) (rand-int 5)]}]))
+                                                 gen/each-thread
+                                                 (gen/stagger 0.25))
+                                 :checker   (checker/linearizable {:model (model/cas-register 0)})}
+     :cas-cp-map                {:client    (cas-cp-map-client nil nil cp-direct-to-leader-routing)
+                                 :generator (->> (fn []
+                                                   (let [k (str "key-" (rand-int 10000))]
+                                                     (gen/mix [{:type :invoke, :f :read, :key k}
+                                                               {:type :invoke, :f :write, :key k, :value (random-string 1000)}
+                                                               {:type :invoke, :f :cas, :value [(rand-int 5) (rand-int 5)]}])))
+                                                 gen/each-thread
+                                                 (gen/stagger 0.25))
+                                 :checker   (independent/checker
+                                              (checker/linearizable {:model (model/cas-register)
+                                                                     :key   :key}))}
+     :queue                     (assoc (queue-client-and-gens)
+                                  :checker (checker/total-queue))
+                                  }))
 
 (defn select-majority
   "Select majority from nodes"
