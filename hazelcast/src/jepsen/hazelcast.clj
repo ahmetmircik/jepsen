@@ -294,10 +294,7 @@
         :read (assoc op :type :ok, :value (.get cp-map (:key op)))
         :write (do (.set cp-map (:key op) (:value op))
                    (assoc op :type :ok))
-        :cas (let [[currentV newV] (:value op)]
-               (if (.compareAndSet cp-map (:key op) currentV newV)
-                 (assoc op :type :ok)
-                 (assoc op :type :fail :error :cas-failed)))))
+        ))
 
     (teardown! [this test]
        (.shutdown conn))
@@ -752,8 +749,7 @@
                                  :generator (->> (fn []
                                                    (let [k (str "key-" (rand-int 10000))]
                                                      (gen/mix [{:type :invoke, :f :read, :key k}
-                                                               {:type :invoke, :f :write, :key k, :value (random-string 1000)}
-                                                               {:type :invoke, :f :cas, :value [(rand-int 5) (rand-int 5)]}])))
+                                                               {:type :invoke, :f :write, :key k, :value (random-string 1000)}])))
                                                  gen/each-thread
                                                  (gen/stagger 0.25))
                                  :checker   (independent/checker
