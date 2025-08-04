@@ -3,7 +3,6 @@
   :url "http://example.com/FIXME"
   :license {:name "Eclipse Public License"
             :url "http://www.eclipse.org/legal/epl-v10.html"}
-  :jvm-opts ["-Dhazelcast.cp.snapshot.chunk.max.size.mb=1"]
   :source-paths ["src"]
   :java-source-paths ["java"]
   :dependencies [[org.clojure/clojure "1.12.0"]

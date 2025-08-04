@@ -37,7 +37,7 @@ run_single_test () {
     cp_direct_to_leader_routing=$4
     echo "Running '$test_name' test with '$nemesis' nemesis, persistent=$persistent, cp_direct_to_leader_routing=$cp_direct_to_leader_routing"
 
-    lein run test --workload "${test_name}" --time-limit "${test_duration}" --license "${license}" --nemesis "${nemesis}" --persistent "${persistent} --cp-direct-to-leader-routing ${cp_direct_to_leader_routing}"
+    LEIN_JVM_OPTS="-Dhazelcast.cp.snapshot.chunk.max.size.mb=1" lein run test --workload "${test_name}" --time-limit "${test_duration}" --license "${license}" --nemesis "${nemesis}" --persistent "${persistent} --cp-direct-to-leader-routing ${cp_direct_to_leader_routing}"
 
     if [ $? != '0' ]; then
         echo "'$test_name' test failed"
