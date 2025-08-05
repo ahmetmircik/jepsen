@@ -778,8 +778,8 @@
                                                 gen/each-thread
                                                 (gen/stagger 0.25))
                                 :checker   (checker/linearizable {:model (model/cas-register 0)})}
-   :snapshot-stress     {:client (snapshot-stress-client nil nil cp-direct-to-leader-routing)
-                                :generator (->> (fn []
+     :snapshot-stress           {:client (snapshot-stress-client nil nil cp-direct-to-leader-routing)
+                                 :generator (->> (fn []
                                                   (let [k (str "key-" (rand-int 10000))]
                                                     (gen/mix [{:type :invoke :f :read :key k}
                                                               {:type :invoke :f :write :key k :value (random-string 1000)}])))
@@ -789,7 +789,7 @@
                                                         (let [k (str "key-" (rand-int 10000))]
                                                           {:type :invoke :f :read :key k}))
                                                       gen/each-thread)
-                                :checker (independent/checker (checker/linearizable {:model model/map :key :key}))}
+                                :checker (independent/checker (checker/linearizable {:model (model/rw-register) :key :key}))}
      :queue                     (assoc (queue-client-and-gens)
                                   :checker (checker/total-queue))
                                   }))
