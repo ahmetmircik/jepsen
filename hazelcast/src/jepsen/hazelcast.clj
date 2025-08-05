@@ -789,7 +789,7 @@
                                                         (let [k (str "key-" (rand-int 10000))]
                                                           {:type :invoke :f :read :key k}))
                                                       gen/each-thread)
-                                :checker (independent/checker (checker/linearizable {:model (model/rw-register) :key :key}))}
+                                :checker (independent/checker (checker/linearizable {:model (model/cas-register nil) :key :key}))}
      :queue                     (assoc (queue-client-and-gens)
                                   :checker (checker/total-queue))
                                   }))
