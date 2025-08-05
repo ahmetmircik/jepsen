@@ -71,7 +71,7 @@ COPY jepsen /jepsen/
 
 # Clone and build Hazelcast Mono repository
 WORKDIR /app
-RUN git clone --branch master https://x-access-token:${GITHUB_TOKEN}@github.com/ahmetmircik/hazelcast-mono.git && \
+RUN git clone --branch mx_chunk_size_log https://x-access-token:${GITHUB_TOKEN}@github.com/ahmetmircik/hazelcast-mono.git && \
     cd hazelcast-mono && \
     ./mvnw clean install -DskipTests -Dcheckstyle.skip -Pquick -q -pl '!hazelcast-enterprise-extensions/hazelcast-enterprise-cdc-db2-tests'
 
