@@ -266,14 +266,6 @@
                true)
   ))
 
-(defn random-string
-  "Generates a random alphanumeric string of a given length."
-  [length]
-  (let [chars (map char (concat (range 48 58)   ; 0-9
-                                (range 65 91)   ; A-Z
-                                (range 97 123)))] ; a-z
-    (apply str (repeatedly length #(rand-nth chars)))))
-
 (defn cas-cp-map-client
   "A CAS register using a CPMap"
   [conn cp-map cp-direct-to-leader-routing]
@@ -283,30 +275,64 @@
         (cas-cp-map-client conn (create-cp-map conn "jepsen.cas-cp-map") cp-direct-to-leader-routing)))
 
     (setup! [this test]
-            "Called to set up database state for testing."
-      (dotimes [i 10000]
-        (let [k (str "key-" i)
-              v (random-string 1000)]
-          (.put cp-map k v))))
+                 "Called to set up database state for testing.")
 
     (invoke! [this test op]
       (case (:f op)
-        :read (assoc op :type :ok, :value (.get cp-map (:key op)))
-        :write (do (.set cp-map (:key op) (:value op))
+        :read (assoc op :type :ok, :value (.get cp-map "key"))
+        :write (do (.set cp-map "key" (:value op))
                    (assoc op :type :ok))
-        ))
+        :cas (let [[currentV newV] (:value op)]
+               (if (.compareAndSet cp-map "key" currentV newV)
+                 (assoc op :type :ok)
+                 (assoc op :type :fail :error :cas-failed)))))
 
     (teardown! [this test]
        (.shutdown conn))
 
     (close! [this test]
-       (.shutdown conn))
+           (.shutdown conn))
 
     client/Reusable
     (reusable? [this test]
-               true)
-  ))
+                   true)
+))
 
+(defn random-string
+  "Generates a random alphanumeric string of a given length."
+  [length]
+  (let [chars (map char (concat (range 48 58)   ; 0-9
+                                (range 65 91)   ; A-Z
+                                (range 97 123)))] ; a-z
+    (apply str (repeatedly length #(rand-nth chars)))))
+
+(defn snapshot-stress-client [conn cp-map routing]
+  (reify client/Client
+    (open! [_ test node]
+      (let [conn (connect node routing)
+            cp-map (create-cp-map conn "jepsen.snapshot-test")]
+        (snapshot-stress-client conn cp-map routing)))
+
+    (setup! [_ test]
+      ;; Pre-fill keys with large values to force multiple snapshot chunk creation
+      (dotimes [i 10000]
+        (.set cp-map (str "key-" i) (random-string 1000))))
+
+    (invoke! [_ test op]
+      (try
+        (case (:f op)
+          :read (assoc op :type :ok
+                       :value (.get cp-map (:key op)))
+          :write (do (.set cp-map (:key op) (:value op))
+                     (assoc op :type :ok :value (:value op)))
+          (assoc op :type :fail :error "Unknown op"))
+        (catch Exception e
+          (assoc op :type :fail :error (.getMessage e)))))
+
+    (teardown! [_ test] (.shutdown conn))
+    (close! [_ test] (.shutdown conn))
+    client/Reusable
+    (reusable? [_ test] true)))
 
 (def queue-poll-timeout
   "How long to wait for items to become available in the queue, in ms"
@@ -746,15 +772,24 @@
                                                  (gen/stagger 0.25))
                                  :checker   (checker/linearizable {:model (model/cas-register 0)})}
      :cas-cp-map                {:client    (cas-cp-map-client nil nil cp-direct-to-leader-routing)
-                                 :generator (->> (fn []
-                                                   (let [k (str "key-" (rand-int 10000))]
-                                                     (gen/mix [{:type :invoke, :f :read, :key k}
-                                                               {:type :invoke, :f :write, :key k, :value (random-string 1000)}])))
-                                                 gen/each-thread
-                                                 (gen/stagger 0.25))
-                                 :checker   (independent/checker
-                                              (checker/linearizable {:model (model/cas-register)
-                                                                     :key   :key}))}
+                                  :generator (->> (fn [] (gen/mix [{:type :invoke, :f :read}
+                                                                 {:type :invoke, :f :write, :value (rand-int 5)}
+                                                                 {:type :invoke, :f :cas, :value [(rand-int 5) (rand-int 5)]}]))
+                                                gen/each-thread
+                                                (gen/stagger 0.25))
+                                :checker   (checker/linearizable {:model (model/cas-register 0)})}
+   :snapshot-stress     {:client (snapshot-stress-client nil nil cp-direct-to-leader-routing)
+                                :generator (->> (fn []
+                                                  (let [k (str "key-" (rand-int 10000))]
+                                                    (gen/mix [{:type :invoke :f :read :key k}
+                                                              {:type :invoke :f :write :key k :value (random-string 1000)}])))
+                                                gen/each-thread
+                                                (gen/stagger 0.25))
+                                :final-generator (->> (fn []
+                                                        (let [k (str "key-" (rand-int 10000))]
+                                                          {:type :invoke :f :read :key k}))
+                                                      gen/each-thread)
+                                :checker (independent/checker (checker/linearizable {:model model/map :key :key}))}
      :queue                     (assoc (queue-client-and-gens)
                                   :checker (checker/total-queue))
                                   }))

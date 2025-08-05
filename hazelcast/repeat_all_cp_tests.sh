@@ -6,8 +6,8 @@ ssh-keyscan -t ssh-ed25519 n3 >> ~/.ssh/known_hosts
 ssh-keyscan -t ssh-ed25519 n4 >> ~/.ssh/known_hosts
 ssh-keyscan -t ssh-ed25519 n5 >> ~/.ssh/known_hosts
 
-tests=("cas-cp-map")
-#tests=("non-reentrant-lock" "reentrant-lock" "non-reentrant-fenced-lock" "reentrant-fenced-lock" "semaphore" "id-gen-long" "cas-long" "cas-reference" "cas-cp-map")
+tests=("snapshot-stress")
+#tests=("non-reentrant-lock" "reentrant-lock" "non-reentrant-fenced-lock" "reentrant-fenced-lock" "semaphore" "id-gen-long" "cas-long" "cas-reference" "cas-cp-map", "snapshot-stress")
 
 if [ $# -lt 3 ]; then
 	echo "Usage: ./repeat_all_cp_tests.sh repeat test_duration license [tests...]"
