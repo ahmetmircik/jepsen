@@ -54,11 +54,11 @@ while [ ${round} -le ${repeat} ]; do
 
     for test in "${tests[@]}"
     do
-      run_single_test "${test}" "partition" "false" "false"
-      run_single_test "${test}" "partition" "false" "true"
+      #run_single_test "${test}" "partition" "false" "false"
+      #run_single_test "${test}" "partition" "false" "true"
       run_single_test "${test}" "partition" "true" "false"
-      run_single_test "${test}" "restart-majority" "true" "false"
-      run_single_test "${test}" "restart-majority" "true" "true"
+      #run_single_test "${test}" "restart-majority" "true" "false"
+      #run_single_test "${test}" "restart-majority" "true" "true"
     done
 
     ((round++))

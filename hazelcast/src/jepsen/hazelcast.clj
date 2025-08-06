@@ -314,7 +314,8 @@
         (snapshot-stress-client conn cp-map routing)))
 
     (setup! [_ test]
-            "Called to set up database state for testing.")
+      (doseq [i (range 5)]
+        (.set cp-map (str "key-" i) (random-string 1000000))))
 
     (invoke! [_ test op]
       (try
@@ -787,7 +788,8 @@
                                                         (let [k (str "key-" (rand-int 5))]
                                                           {:type :invoke :f :read :key k}))
                                                       gen/each-thread)
-                                :checker (independent/checker (checker/linearizable {:model (model/cas-register nil) :key :key}))}
+                                :checker (independent/checker
+                                          (checker/linearizable {:model (model/map-register) :key :key}))}
      :queue                     (assoc (queue-client-and-gens)
                                   :checker (checker/total-queue))
                                   }))

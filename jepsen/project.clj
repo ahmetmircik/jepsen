@@ -3,6 +3,7 @@
   :url         "https://jepsen.io"
   :license {:name "Eclipse Public License"
             :url  "http://www.eclipse.org/legal/epl-v10.html"}
+<<<<<<< HEAD
   :dependencies [[org.clj-commons/byte-streams "0.3.4"
                   :exclusions [potemkin]]
                  [org.clojure/clojure "1.12.0"]
@@ -14,15 +15,30 @@
                   :exclusions [org.slf4j/slf4j-api]]
                  [elle "0.2.4"]
                  [clj-time "0.15.2"]
+=======
+  :dependencies [[org.clojure/clojure "1.12.1"]
+                 [org.clojure/data.fressian "1.1.0"]
+                 [org.clojure/tools.logging "1.3.0"]
+                 [org.clojure/tools.cli "1.0.219"]
+                 [spootnik/unilog "0.7.31"
+                  :exclusions [org.slf4j/slf4j-api]]
+                 [elle "0.2.4"]
+                 [clj-time "0.15.2"]                               ;; still latest but deprecated
+>>>>>>> 46b541d6 (1 single test & updates lib versions)
                  [io.jepsen/history "0.1.5"]
                  [jepsen.txn "0.1.2"]
                  [knossos "0.3.12"]
                  [clj-ssh "0.5.14"]
                  [gnuplot "0.1.3"]
                  [http-kit "2.8.0"]
+<<<<<<< HEAD
                  [ring "1.14.1"]
                  [com.hierynomus/sshj "0.39.0"
                   :exclusions [org.slf4j/slf4j-api]]
+=======
+                 [ring "1.11.0"]
+                 [com.hierynomus/sshj "0.39.0"]
+>>>>>>> 46b541d6 (1 single test & updates lib versions)
                  [com.jcraft/jsch.agentproxy.connector-factory "0.0.9"]
                  [com.jcraft/jsch.agentproxy.sshj "0.0.9"
                   :exclusions [net.schmizz/sshj]]
@@ -30,7 +46,11 @@
                  [hiccup "1.0.5"]
                  [metametadata/multiset "0.1.1"]
                  [slingshot "0.12.2"]
+<<<<<<< HEAD
                  [org.clojure/data.codec "0.2.0"]
+=======
+                 [org.clojure/data.codec "0.1.1"]
+>>>>>>> 46b541d6 (1 single test & updates lib versions)
                  [fipp "0.6.27"]]
   :java-source-paths ["src"]
   :javac-options ["--release" "11"]
@@ -58,10 +78,14 @@
           :source-uri "https://github.com/jepsen-io/jepsen/blob/v{version}/jepsen/{filepath}#L{line}"
           :metadata {:doc/format :markdown}}
   :profiles {:uberjar {:aot :all}
+<<<<<<< HEAD
              :dev {; experimenting with faster startup
                    ;:aot [jepsen.core]
                    :dependencies [[org.clojure/test.check "1.1.1"]
                                   [com.gfredericks/test.chuck "0.2.15"]]
+=======
+             :dev {:dependencies [[org.clojure/test.check "1.1.1"]]
+>>>>>>> 46b541d6 (1 single test & updates lib versions)
                    :jvm-opts ["-Xmx32g"
                               "-server"
                               "-XX:-OmitStackTraceInFastThrow"]}})
