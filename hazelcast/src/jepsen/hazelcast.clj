@@ -315,8 +315,8 @@
 
     (setup! [_ test]
       ;; Pre-fill keys with large values to force multiple snapshot chunk creation
-      (dotimes [i 10000]
-        (.set cp-map (str "key-" i) (random-string 1000))))
+      (dotimes [i 100]
+        (.set cp-map (str "key-" i) (random-string 100000))))
 
     (invoke! [_ test op]
       (try
