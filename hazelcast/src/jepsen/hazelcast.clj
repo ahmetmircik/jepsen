@@ -314,9 +314,7 @@
         (snapshot-stress-client conn cp-map routing)))
 
     (setup! [_ test]
-      ;; Pre-fill keys with large values to force multiple snapshot chunk creation
-      (dotimes [i 100]
-        (.set cp-map (str "key-" i) (random-string 100000))))
+            "Called to set up database state for testing.")
 
     (invoke! [_ test op]
       (try
@@ -782,7 +780,7 @@
                                  :generator (->> (fn []
                                                   (let [k (str "key-" (rand-int 5))]
                                                     (gen/mix [{:type :invoke :f :read :key k}
-                                                              {:type :invoke :f :write :key k :value (random-string 5)}])))
+                                                              {:type :invoke :f :write :key k :value (random-string 1000000)}])))
                                                 gen/each-thread
                                                 (gen/stagger 0.25))
                                 :final-generator (->> (fn []
