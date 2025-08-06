@@ -306,7 +306,7 @@
                                 (range 97 123)))] ; a-z
     (apply str (repeatedly length #(rand-nth chars)))))
 
-(def random-values (vec (repeatedly 5 #(random-string 100000))))
+(def random-values (vec (repeatedly 3 #(random-string 100))))
 
 (defn snapshot-stress-client [conn cp-map routing]
   (reify client/Client
@@ -316,7 +316,7 @@
         (snapshot-stress-client conn cp-map routing)))
 
     (setup! [_ test]
-      (doseq [i (range 100)]
+      (doseq [i (range 100000)]
         (.set cp-map (str "key-" i) (rand-nth random-values))))
 
     (invoke! [_ test op]
@@ -781,14 +781,14 @@
                                 :checker   (checker/linearizable {:model (model/cas-register 0)})}
      :snapshot-stress           {:client (snapshot-stress-client nil nil cp-direct-to-leader-routing)
                                  :generator (->> (fn []
-                                                  (let [k (str "key-" (rand-int 100))
+                                                  (let [k (str "key-" (rand-int 3))
                                                         v (rand-nth random-values)]
                                                     (gen/mix [{:type :invoke :f :read :key k}
                                                               {:type :invoke :f :write :key k :value v}])))
                                                 gen/each-thread
                                                 (gen/stagger 0.25))
                                 :final-generator (->> (fn []
-                                                        (let [k (str "key-" (rand-int 100))]
+                                                        (let [k (str "key-" (rand-int 3))]
                                                           {:type :invoke :f :read :key k}))
                                                       gen/each-thread)
                                 :checker (independent/checker
