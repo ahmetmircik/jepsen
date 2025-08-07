@@ -65,6 +65,7 @@
         _ (.setProperty config "hazelcast.wait.seconds.before.join" "0")
         _ (.setProperty config "hazelcast.merge.first.run.delay.seconds" "1")
         _ (.setProperty config "hazelcast.merge.next.run.delay.seconds" "1")
+        _ (.setProperty config "hazelcast.cp.snapshot.chunk.max.size.mb" "1")
 
         ; Network config
         _       (.. config getNetworkConfig getJoin getMulticastConfig

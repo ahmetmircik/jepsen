@@ -52,7 +52,10 @@ services:
     hostname: control
     depends_on:
 %%DEPS%%
-    build: ./control
+    build:
+      context: ./control
+      args:
+        - GITHUB_TOKEN=${GITHUB_TOKEN}
     env_file: ./secret/control.env
     ports:
       - "22"
