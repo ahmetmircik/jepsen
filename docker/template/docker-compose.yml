@@ -56,6 +56,7 @@ services:
       context: ./control
       args:
         - GITHUB_TOKEN=${GITHUB_TOKEN}
+        - MONOREPO_BRANCH=${MONOREPO_BRANCH:-master}
     env_file: ./secret/control.env
     ports:
       - "22"
