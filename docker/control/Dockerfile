@@ -12,6 +12,10 @@ STOPSIGNAL SIGRTMIN+3
 ARG GITHUB_TOKEN
 ENV GITHUB_TOKEN=${GITHUB_TOKEN}
 
+# Optional branch or tag to clone (defaults to 'master')
+ARG BRANCH=master
+ENV BRANCH=${BRANCH}
+
 # Install packages in smaller groups to manage disk space better
 RUN apt-get update && apt-get upgrade -y && \
     apt-get install -y --no-install-recommends \
@@ -68,7 +72,7 @@ COPY jepsen /jepsen/
 
 # Clone and build Hazelcast Mono repository
 WORKDIR /app
-RUN git clone --depth 1 --branch master https://x-access-token:${GITHUB_TOKEN}@github.com/hazelcast/hazelcast-mono.git && \
+RUN git clone --depth 1 --branch "${BRANCH}" https://x-access-token:${GITHUB_TOKEN}@github.com/hazelcast/hazelcast-mono.git && \
     cd hazelcast-mono && \
     ./mvnw clean install -DskipTests -Dcheckstyle.skip -Pquick -q -pl '!hazelcast-enterprise-extensions/hazelcast-enterprise-cdc-db2-tests' && \
     cd .. && \
